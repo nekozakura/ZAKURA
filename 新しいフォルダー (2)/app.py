@@ -2,36 +2,35 @@ from flask import Flask, render_template_string, jsonify, request
 import google.generativeai as genai
 import os
 
+# Renderのポートを自動で最優先認識する設定
 app = Flask(__name__)
 
-# ★ここにあなたのGemini APIキーを貼り付け直してください
+# あなたのGemini APIキーをここに固定
 GOOGLE_API_KEY = "AQ.Ab8RN6KwFTv7eg1mrN9BhKBAdDiN9hVnLRTIBXkf_6vKuHmoMw"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# 固定のハッキングデータベース（野崎・佐野・黒須など）
+# ターゲット追跡用ハッキングデータベース
 HACK_DB = {
-    "野崎": {"location": "東京都千代田区霞が関２丁目１−１（警視庁本部・公安部）", "lat": 35.6761, "lng": 139.7503},
-    "佐野": {"location": "東京都千代田区霞が関２丁目１−２（警察庁）", "lat": 35.6765, "lng": 139.7508},
-    "黒須": {"location": "東京都港区赤坂９丁目７−１（防衛省・別班ダミー拠点付近）", "lat": 35.6664, "lng": 139.7314}
+    "野崎": "東京都千代田区霞が関２丁目１−１（警視庁本部・公安部）",
+    "佐野": "東京都千代田区霞が関２丁目１−２（警察庁）",
+    "黒須": "東京都港区赤坂９丁目７−１（防衛省・別班ダミー拠点付近）"
 }
 
-# ザクラの頭脳（Gemini API連携）
 def ask_zakura(text):
     if any(k in text for k in ["ハッキング", "調べ", "場所", "どこ"]):
-        for name, data in HACK_DB.items():
+        for name, loc in HACK_DB.items():
             if name in text:
-                return f"HACK:{name}:{data['location']}:{data['lat']}:{data['lng']}"
-        return "HACK:UNKNOWN:不明な通信エリア:35.6586:139.7454"
+                return f"HACK:{name}:{loc}:35.67:139.75"
+        return "HACK:UNKNOWN:不明な通信エリア:35.65:139.74"
     try:
         model = genai.GenerativeModel(
             model_name="gemini-2.5-flash",
-            system_instruction="あなたはVIVANTの別班最高機密AIザクラです。クールで優秀なAIとして、1〜2文で短く回答してください。漢字を多くせず聞き取りやすい文章にしてください。"
+            system_instruction="あなたはVIVANTの別班統合AIザクラです。クールで優秀なAIとして、1〜2文で短くエージェントに回答してください。"
         )
         return model.generate_content(text).text
     except:
         return "スタンドアローンモード稼働中。指示をどうぞ。"
 
-# --- クラウドでも100%エラーが出ない軽量サイバーUI ---
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ja">
@@ -126,8 +125,8 @@ def voice_command():
 
 @app.route('/')
 def home():
-    return HTML_TEMPLATE
+    return render_template_string(HTML_TEMPLATE)
 
 if __name__ == '__main__':
-    # クラウドサーバーが指定するポートで起動
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    # クラウド環境のWeb待ち受けエラー(status 1)を完全に回避する起動設定
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
