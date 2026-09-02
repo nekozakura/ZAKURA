@@ -164,5 +164,5 @@ def home():
     return render_template_string(HTML_TEMPLATE)
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    # Render専用のポートを強制認識させる設定
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
